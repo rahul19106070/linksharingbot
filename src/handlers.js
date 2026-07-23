@@ -47,7 +47,8 @@ export const setupHandlers = (bot) => {
     }
 
     if (!payload) {
-      return ctx.reply('Welcome! This bot provides files via special links from our channel.');
+      const welcomeMsg = `Wana watch Exclus!ve Prem!um V!deos Join Us Now 🥰🥰\n\nAisi v!deos int@rnet pe kahi nahi milegi 🥰\n\nMost Exclus!ve V!deos join Now 🥰 \n\nhttps://t.me/+8HZISEj5vs4yM2I1\n\nhttps://t.me/+8HZISEj5vs4yM2I1`;
+      return ctx.reply(welcomeMsg, { disable_web_page_preview: true });
     }
 
     try {
