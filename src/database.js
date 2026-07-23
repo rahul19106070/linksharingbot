@@ -42,7 +42,12 @@ const UserSchema = new mongoose.Schema({
   lastName: { type: String },
   username: { type: String },
   languageCode: { type: String },
-  joinedAt: { type: Date, default: Date.now }
+  joinedAt: { type: Date, default: Date.now },
+  isPremium: { type: Boolean, default: false },
+  linksUsedToday: { type: Number, default: 0 },
+  lastResetDate: { type: String, default: "" }, // Format: "YYYY-MM-DD" in IST
+  bonusLinks: { type: Number, default: 0 },
+  referredBy: { type: Number, default: null }
 });
 
 const ScheduledDeletionSchema = new mongoose.Schema({
