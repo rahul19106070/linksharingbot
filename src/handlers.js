@@ -111,9 +111,17 @@ export const setupHandlers = (bot) => {
           `🎁 **Want more links right now?**\n` +
           `Invite friends using your unique referral link! You instantly earn 2 bonus links for every person who joins.\n\n` +
           `Your Referral Link:\n` +
-          `\`https://t.me/${ctx.botInfo.username}?start=ref_${ctx.from.id}\`\n\n` +
+          `https://t.me/${ctx.botInfo.username}?start=ref_${ctx.from.id}\n\n` +
           `👑 Or contact the admin to buy Premium for unlimited access!`,
-          { parse_mode: 'Markdown', disable_web_page_preview: true }
+          { 
+            parse_mode: 'Markdown', 
+            disable_web_page_preview: true,
+            reply_markup: {
+              inline_keyboard: [[
+                { text: '📤 Share with Friends', url: `https://t.me/share/url?url=https://t.me/${ctx.botInfo.username}?start=ref_${ctx.from.id}&text=Join%20this%20awesome%20bot%20to%20get%20exclusive%20videos!` }
+              ]]
+            }
+          }
         );
       }
       
@@ -277,8 +285,16 @@ export const setupHandlers = (bot) => {
     ctx.reply(
       `🎁 **Invite Friends, Get Free Links!**\n\n` +
       `Share this unique link with your friends. For every new person who joins using your link, you will permanently unlock **2 extra daily links!**\n\n` +
-      `Your Link: \n\`${refLink}\``,
-      { parse_mode: 'Markdown', disable_web_page_preview: true }
+      `Your Link: \n${refLink}`,
+      { 
+        parse_mode: 'Markdown', 
+        disable_web_page_preview: true,
+        reply_markup: {
+          inline_keyboard: [[
+            { text: '📤 Share Link', url: `https://t.me/share/url?url=${refLink}&text=Join%20this%20awesome%20bot%20to%20get%20exclusive%20videos!` }
+          ]]
+        }
+      }
     );
   });
 
