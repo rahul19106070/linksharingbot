@@ -4,7 +4,7 @@ dotenv.config();
 export const config = {
   botToken: process.env.TELEGRAM_BOT_TOKEN || process.env.BOT_TOKEN,
   mongoUri: process.env.MONGODB_URI || 'mongodb://localhost:27017/telegram_file_bot',
-  adminUserId: process.env.ADMIN_IDS ? parseInt(process.env.ADMIN_IDS.split(',')[0]) : null,
+  adminUserIds: process.env.ADMIN_IDS ? process.env.ADMIN_IDS.split(',').map(id => parseInt(id.trim())) : [],
   forceSubChannel: process.env.FORCE_SUB_CHANNEL,
 };
 

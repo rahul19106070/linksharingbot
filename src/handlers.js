@@ -62,7 +62,7 @@ export const setupHandlers = (bot) => {
   });
 
   bot.command('newbatch', async (ctx) => {
-    if (config.adminUserId && ctx.from.id !== config.adminUserId) return;
+    if (config.adminUserIds.length > 0 && !config.adminUserIds.includes(ctx.from.id)) return;
     
     const batchId = ctx.message.text.split(' ')[1];
     if (!batchId) {
@@ -82,7 +82,7 @@ export const setupHandlers = (bot) => {
   });
 
   bot.command('endbatch', async (ctx) => {
-    if (config.adminUserId && ctx.from.id !== config.adminUserId) return;
+    if (config.adminUserIds.length > 0 && !config.adminUserIds.includes(ctx.from.id)) return;
     
     const batchId = activeBatches[ctx.from.id];
     if (!batchId) {
@@ -97,7 +97,7 @@ export const setupHandlers = (bot) => {
   });
 
   bot.on(['photo', 'video', 'document'], async (ctx, next) => {
-    if (config.adminUserId && ctx.from.id !== config.adminUserId) {
+    if (config.adminUserIds.length > 0 && !config.adminUserIds.includes(ctx.from.id)) {
         return next();
     }
     
