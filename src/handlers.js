@@ -1,4 +1,4 @@
-import { Batch } from './database.js';
+import { Batch, User, ScheduledDeletion } from './database.js';
 import { config } from './config.js';
 
 // In serverless, memory is ephemeral, but during a short window (like creating a batch),
@@ -12,6 +12,22 @@ export const setupHandlers = (bot) => {
   bot.command('start', async (ctx) => {
     const payload = ctx.payload;
     
+    // Save user profile
+    try {
+      await User.findOneAndUpdate(
+        { telegramId: ctx.from.id },
+        {
+          firstName: ctx.from.first_name,
+          lastName: ctx.from.last_name,
+          username: ctx.from.username,
+          languageCode: ctx.from.language_code
+        },
+        { upsert: true, new: true }
+      );
+    } catch (err) {
+      console.error("Error saving user:", err);
+    }
+
     // Force sub check
     if (config.forceSubChannel) {
         try {
@@ -40,24 +56,113 @@ export const setupHandlers = (bot) => {
         return ctx.reply('Sorry, no files found for this link.');
       }
 
+      const sentMessageIds = [];
       for (const file of batch.files) {
         try {
+          let msg;
           if (file.fileType === 'photo') {
-            await ctx.replyWithPhoto(file.fileId, { caption: file.caption });
+            msg = await ctx.replyWithPhoto(file.fileId, { caption: file.caption });
           } else if (file.fileType === 'video') {
-            await ctx.replyWithVideo(file.fileId, { caption: file.caption });
+            msg = await ctx.replyWithVideo(file.fileId, { caption: file.caption });
           } else if (file.fileType === 'document') {
-            await ctx.replyWithDocument(file.fileId, { caption: file.caption });
+            msg = await ctx.replyWithDocument(file.fileId, { caption: file.caption });
           } else {
-            await ctx.replyWithDocument(file.fileId, { caption: file.caption });
+            msg = await ctx.replyWithDocument(file.fileId, { caption: file.caption });
+          }
+          if (msg && msg.message_id) {
+            sentMessageIds.push(msg.message_id);
           }
         } catch (e) {
            console.error('Error sending file', e);
         }
       }
+
+      // Schedule deletion if we sent messages
+      if (sentMessageIds.length > 0) {
+        const deleteAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+        await ScheduledDeletion.create({
+          chatId: ctx.chat.id,
+          messageIds: sentMessageIds,
+          deleteAt
+        });
+        
+        // Optional: inform user that files self-destruct
+        await ctx.reply("⚠️ *Note:* These files will automatically delete in 5 minutes.", { parse_mode: 'Markdown' }).then(msg => {
+          // Schedule this warning message for deletion too!
+          ScheduledDeletion.create({
+            chatId: ctx.chat.id,
+            messageIds: [msg.message_id],
+            deleteAt
+          });
+        });
+      }
     } catch (dbError) {
       console.error(dbError);
       ctx.reply("An error occurred while fetching files.");
+    }
+  });
+
+  const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+  bot.command('admin', async (ctx) => {
+    if (config.adminUserIds.length > 0 && !config.adminUserIds.includes(ctx.from.id)) return;
+    
+    const menu = `🛠 *Admin Command Menu* 🛠\n\n` +
+                 `🔹 /stats - View total users and file batches\n` +
+                 `🔹 /newbatch <id> - Start a new movie upload session\n` +
+                 `🔹 /endbatch - Finish uploading and get the sharing link\n` +
+                 `🔹 /broadcast <message> - Send a message to all users\n\n` +
+                 `*Note:* The broadcast command currently supports text only.`;
+                 
+    ctx.reply(menu, { parse_mode: 'Markdown' });
+  });
+
+  bot.command('broadcast', async (ctx) => {
+    if (config.adminUserIds.length > 0 && !config.adminUserIds.includes(ctx.from.id)) return;
+    
+    const message = ctx.message.text.substring('/broadcast'.length).trim();
+    if (!message) {
+      return ctx.reply('⚠️ Please provide a message to broadcast.\nUsage: `/broadcast Hello everyone!`', { parse_mode: 'Markdown' });
+    }
+    
+    ctx.reply('🚀 Broadcast started! This might take a while depending on the number of users...');
+    
+    let successCount = 0;
+    let failCount = 0;
+    
+    try {
+      const users = await User.find({}, 'telegramId');
+      
+      for (const user of users) {
+        try {
+          await ctx.telegram.sendMessage(user.telegramId, message);
+          successCount++;
+        } catch (error) {
+          console.error(`Failed to send to ${user.telegramId}:`, error.message);
+          failCount++;
+        }
+        // Delay to respect Telegram API limits (approx 30 msgs/sec limit, we use 50ms to be safe = 20/sec)
+        await sleep(50);
+      }
+      
+      ctx.reply(`✅ *Broadcast Complete!*\n\n🟢 Successful: ${successCount}\n🔴 Failed (Blocked bot): ${failCount}`, { parse_mode: 'Markdown' });
+      
+    } catch (dbError) {
+      console.error(dbError);
+      ctx.reply("❌ Error fetching users from database.");
+    }
+  });
+
+  bot.command('stats', async (ctx) => {
+    if (config.adminUserIds.length > 0 && !config.adminUserIds.includes(ctx.from.id)) return;
+    
+    try {
+      const count = await User.countDocuments();
+      const batchCount = await Batch.countDocuments();
+      ctx.reply(`📊 Bot Statistics:\n\n👥 Total Users: ${count}\n📁 Total Batches: ${batchCount}`);
+    } catch (e) {
+      console.error(e);
+      ctx.reply("Error fetching stats.");
     }
   });
 

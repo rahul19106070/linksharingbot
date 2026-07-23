@@ -36,4 +36,21 @@ const BatchSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
+const UserSchema = new mongoose.Schema({
+  telegramId: { type: Number, required: true, unique: true },
+  firstName: { type: String },
+  lastName: { type: String },
+  username: { type: String },
+  languageCode: { type: String },
+  joinedAt: { type: Date, default: Date.now }
+});
+
+const ScheduledDeletionSchema = new mongoose.Schema({
+  chatId: { type: Number, required: true },
+  messageIds: { type: [Number], required: true },
+  deleteAt: { type: Date, required: true, index: true }
+});
+
 export const Batch = mongoose.models.Batch || mongoose.model('Batch', BatchSchema);
+export const User = mongoose.models.User || mongoose.model('User', UserSchema);
+export const ScheduledDeletion = mongoose.models.ScheduledDeletion || mongoose.model('ScheduledDeletion', ScheduledDeletionSchema);
