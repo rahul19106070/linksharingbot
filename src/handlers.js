@@ -96,6 +96,7 @@ export const setupHandlers = (bot) => {
       
       if (user.lastResetDate !== todayIST) {
         user.linksUsedToday = 0;
+        user.bonusLinks = 0;
         user.lastResetDate = todayIST;
         if (user.save) await user.save();
       }
@@ -284,7 +285,7 @@ export const setupHandlers = (bot) => {
     const refLink = `https://t.me/${ctx.botInfo.username}?start=ref_${ctx.from.id}`;
     ctx.reply(
       `🎁 <b>Invite Friends, Get Free Links!</b>\n\n` +
-      `Share this unique link with your friends. For every new person who joins using your link, you will permanently unlock <b>2 extra daily links!</b>\n\n` +
+      `Share this unique link with your friends. For every new person who joins using your link, you will instantly unlock <b>2 extra bonus links for today!</b>\n\n` +
       `Your Link: \n${refLink}`,
       { 
         parse_mode: 'HTML', 
@@ -311,7 +312,7 @@ export const setupHandlers = (bot) => {
                   `🔗 <b>Total Links Available:</b> ${totalAvailable}\n` +
                   `  ├ Daily Free Links: ${user.isPremium ? "Unlimited" : availableFree}\n` +
                   `  └ Referral Bonus Links: ${user.bonusLinks}\n\n` +
-                  `<i>Note: You get 3 free links every day. Free links renew at midnight (IST).</i>`;
+                  `<i>Note: You get 3 free links every day. All free & bonus links reset at midnight (IST).</i>`;
                   
       ctx.reply(msg, { parse_mode: 'HTML' });
     } catch (e) {
