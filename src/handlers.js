@@ -118,9 +118,10 @@ export const setupHandlers = (bot) => {
             parse_mode: 'HTML', 
             disable_web_page_preview: true,
             reply_markup: {
-              inline_keyboard: [[
-                { text: '📤 Share with Friends', url: `https://t.me/share/url?url=https://t.me/${ctx.botInfo.username}?start=ref_${ctx.from.id}&text=Join%20this%20awesome%20bot%20to%20get%20exclusive%20videos!` }
-              ]]
+              inline_keyboard: [
+                [{ text: '📤 Share with Friends', url: `https://t.me/share/url?url=https://t.me/${ctx.botInfo.username}?start=ref_${ctx.from.id}&text=Join%20this%20awesome%20bot%20to%20get%20exclusive%20videos!` }],
+                [{ text: '👑 Buy Premium', url: 'tg://user?id=648002168' }]
+              ]
             }
           }
         );
