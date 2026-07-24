@@ -37,7 +37,7 @@ export const setupHandlers = (bot) => {
                    { new: true }
                 );
                 if (inviter) {
-                   ctx.telegram.sendMessage(inviterId, `🎉 **Good news!** Someone just joined using your referral link!\n\nYou have been rewarded with +2 bonus links!`, { parse_mode: 'Markdown' }).catch(e => console.error(e));
+                   ctx.telegram.sendMessage(inviterId, `🎉 <b>Good news!</b> Someone just joined using your referral link!\n\nYou have been rewarded with +2 bonus links!`, { parse_mode: 'HTML' }).catch(e => console.error(e));
                 }
              } catch (e) {
                 console.error("Referral error", e);
@@ -106,15 +106,15 @@ export const setupHandlers = (bot) => {
       
       if (!user.isPremium && availableLinks <= 0) {
         return ctx.reply(
-          `🚫 **Daily Limit Reached!**\n\n` + 
+          `🚫 <b>Daily Limit Reached!</b>\n\n` + 
           `You have used all your free links for today. Your free balance will renew tonight at midnight.\n\n` +
-          `🎁 **Want more links right now?**\n` +
+          `🎁 <b>Want more links right now?</b>\n` +
           `Invite friends using your unique referral link! You instantly earn 2 bonus links for every person who joins.\n\n` +
           `Your Referral Link:\n` +
           `https://t.me/${ctx.botInfo.username}?start=ref_${ctx.from.id}\n\n` +
           `👑 Or contact the admin to buy Premium for unlimited access!`,
           { 
-            parse_mode: 'Markdown', 
+            parse_mode: 'HTML', 
             disable_web_page_preview: true,
             reply_markup: {
               inline_keyboard: [[
@@ -186,14 +186,14 @@ export const setupHandlers = (bot) => {
   bot.command('admin', async (ctx) => {
     if (config.adminUserIds.length > 0 && !config.adminUserIds.includes(ctx.from.id)) return;
     
-    const menu = `🛠 *Admin Command Menu* 🛠\n\n` +
+    const menu = `🛠 <b>Admin Command Menu</b> 🛠\n\n` +
                  `🔹 /stats - View total users and file batches\n` +
                  `🔹 /newbatch <id> - Start a new movie upload session\n` +
                  `🔹 /endbatch - Finish uploading and get the sharing link\n` +
                  `🔹 /broadcast <message> - Send a message to all users\n\n` +
-                 `*Note:* The broadcast command currently supports text only.`;
+                 `<i>Note:</i> The broadcast command currently supports text only.`;
                  
-    ctx.reply(menu, { parse_mode: 'Markdown' });
+    ctx.reply(menu, { parse_mode: 'HTML' });
   });
 
   bot.command('broadcast', async (ctx) => {
@@ -201,7 +201,7 @@ export const setupHandlers = (bot) => {
     
     const message = ctx.message.text.substring('/broadcast'.length).trim();
     if (!message) {
-      return ctx.reply('⚠️ Please provide a message to broadcast.\nUsage: `/broadcast Hello everyone!`', { parse_mode: 'Markdown' });
+      return ctx.reply('⚠️ Please provide a message to broadcast.\nUsage: <code>/broadcast Hello everyone!</code>', { parse_mode: 'HTML' });
     }
     
     ctx.reply('🚀 Broadcast started! This might take a while depending on the number of users...');
@@ -224,7 +224,7 @@ export const setupHandlers = (bot) => {
         await sleep(50);
       }
       
-      ctx.reply(`✅ *Broadcast Complete!*\n\n🟢 Successful: ${successCount}\n🔴 Failed (Blocked bot): ${failCount}`, { parse_mode: 'Markdown' });
+      ctx.reply(`✅ <b>Broadcast Complete!</b>\n\n🟢 Successful: ${successCount}\n🔴 Failed (Blocked bot): ${failCount}`, { parse_mode: 'HTML' });
       
     } catch (dbError) {
       console.error(dbError);
@@ -283,11 +283,11 @@ export const setupHandlers = (bot) => {
   bot.command('refer', async (ctx) => {
     const refLink = `https://t.me/${ctx.botInfo.username}?start=ref_${ctx.from.id}`;
     ctx.reply(
-      `🎁 **Invite Friends, Get Free Links!**\n\n` +
-      `Share this unique link with your friends. For every new person who joins using your link, you will permanently unlock **2 extra daily links!**\n\n` +
+      `🎁 <b>Invite Friends, Get Free Links!</b>\n\n` +
+      `Share this unique link with your friends. For every new person who joins using your link, you will permanently unlock <b>2 extra daily links!</b>\n\n` +
       `Your Link: \n${refLink}`,
       { 
-        parse_mode: 'Markdown', 
+        parse_mode: 'HTML', 
         disable_web_page_preview: true,
         reply_markup: {
           inline_keyboard: [[
@@ -306,14 +306,14 @@ export const setupHandlers = (bot) => {
       const availableFree = Math.max(0, 3 - user.linksUsedToday);
       const totalAvailable = user.isPremium ? "Unlimited 👑" : (availableFree + user.bonusLinks);
       
-      const msg = `👤 **Your Account Profile**\n\n` +
-                  `👑 **Status:** ${user.isPremium ? "Premium" : "Free"}\n` +
-                  `🔗 **Total Links Available:** ${totalAvailable}\n` +
+      const msg = `👤 <b>Your Account Profile</b>\n\n` +
+                  `👑 <b>Status:</b> ${user.isPremium ? "Premium" : "Free"}\n` +
+                  `🔗 <b>Total Links Available:</b> ${totalAvailable}\n` +
                   `  ├ Daily Free Links: ${user.isPremium ? "Unlimited" : availableFree}\n` +
                   `  └ Referral Bonus Links: ${user.bonusLinks}\n\n` +
-                  `*Note: You get 3 free links every day. Free links renew at midnight (IST).*`;
+                  `<i>Note: You get 3 free links every day. Free links renew at midnight (IST).</i>`;
                   
-      ctx.reply(msg, { parse_mode: 'Markdown' });
+      ctx.reply(msg, { parse_mode: 'HTML' });
     } catch (e) {
       console.error(e);
     }
@@ -328,7 +328,7 @@ export const setupHandlers = (bot) => {
       const user = await User.findOneAndUpdate({ telegramId: targetId }, { isPremium: true }, { new: true });
       if (user) {
         ctx.reply(`✅ Granted Premium to user ${targetId}.`);
-        ctx.telegram.sendMessage(targetId, `🎉 **Congratulations!**\n\nAn admin has granted you Premium Access! You now have unlimited link views without any daily limits!`).catch(e=>console.error(e));
+        ctx.telegram.sendMessage(targetId, `🎉 <b>Congratulations!</b>\n\nAn admin has granted you Premium Access! You now have unlimited link views without any daily limits!`, { parse_mode: 'HTML' }).catch(e=>console.error(e));
       } else {
         ctx.reply(`❌ User ${targetId} not found in database. Make sure they typed /start first.`);
       }
